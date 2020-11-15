@@ -344,12 +344,20 @@ def block_permutations(num_blocks):
             relabelling.extend(blocks[i])
         yield relabelling
 
-def isomorphism_class(sphere,n,oneline=False,reduce=False,index=False):
+def isomorphism_class(sphere,n,oneline=False,index=False):
     """
     Find all spheres isomorphic to a given sphere by vertex-relabelling isomorphisms.
     Returns as a list of the permutations which specify the spheres in cycle notation (lists of lists of integers).
 
+    Index format (if index=True): tuple (i,j,k)
+        i = 0 for identity reflection, i = 1 for standard reflection
+        j is index the rotation occurs in rotations()
+        k is index the block permutation appears in block_permutations()
+
     sphere: permutation in cycle notation specifying a sphere (list of lists of integers)
+    n: integer (length of permutation)
+    oneline: if True, input and output are instead in oneline notation
+    index: if True, return as a list of tuples of a sphere and an index for the corresponding isomorphism
     """
     num_blocks = int((n-1)/3)
     if oneline:
@@ -365,11 +373,10 @@ def isomorphism_class(sphere,n,oneline=False,reduce=False,index=False):
             rotated = relabel(reflections[i],rots[j])
             for k in range(len(block_perms)):
                 new_sphere = relabel(rotated,block_perms[k])
-                if not reduce or new_sphere not in iso_class:
-                    if index:
-                        iso_class.append((new_sphere,(i,j,k)))
-                    else:
-                        iso_class.append(new_sphere)
+                if index:
+                    iso_class.append((new_sphere,(i,j,k)))
+                else:
+                    iso_class.append(new_sphere)
     if index:
         if oneline:
             return iso_class
@@ -460,6 +467,63 @@ def family_three_crystallisations(n, sphere1=[], spheres=[], return_product=Fals
             else:
                 gems.append((sphere1,sphere2))
     return gems
+
+def family_three_crystallisations_isos(n, sphere1=[], return_product=False):
+    """
+    Find all 3-crystallisations specified by permutations id and three permutations of cycle type (1^1,3^{(n-1)/3}):
+        mu = (0)(1 2 3)...(n-3 n-2 n-1)
+        a fixed permutation sphere1 defining a 2-sphere gem
+        a permutation from the isomorphism class of sphere1 
+    If sphere1 is not specified, the first element of spheres is used.
+    If spheres is not specified, the full list of 2-spheres family_two_spheres(n) is used.
+    Returns as a list of pairs (tuples) of permutations in cycle notation (lists of lists of integers).
+
+    n: positive integer of the form 3k+1
+    sphere1: permutation in cycle notation
+    return_product: if true, returns instead as a list of triples (sigma1, sigma2, sigma1^-1 * sigma2)
+    """
+    gems = []
+    oneline1 = cycle_to_oneline(sphere1,n)
+    spheres = isomorphism_class(oneline1,n,oneline=True,index=True)
+    for (oneline2,ind) in spheres:
+        s1_inv_s2 = compose(inverse(oneline1),oneline2)
+        s1_inv_s2_cycles = oneline_to_cycle(s1_inv_s2)
+        if has_correct_cycle_structure(s1_inv_s2_cycles) and is_contracted(oneline1,oneline2,n):
+            if return_product:
+                gems.append(((sphere1,oneline_to_cycle(oneline2),s1_inv_s2_cycles), ind))
+            else:
+                gems.append(((sphere1,oneline_to_cycle(oneline2)), ind))
+    return gems
+
+def find_three_crystallisation(n, sphere1, times):
+    """
+    Attempt to construct a 3-crystallisation from a given base sphere by applying random isomorphisms up to a 
+        given number of times.
+    If successful, returns a tuple consisting of:
+        the last two colours (where the four colours are id, mu, sphere1 and the permutation found)
+            as a of pair (tuple) of permutations in cycle notation (lists of lists of integers).
+        the isomorphism used to obtain the fourth colour from sphere1, as a pair (tuple) of an integer that is
+            0 for the identity and 1 for standard reflection, and the relabelling for the combined rotation
+            and block permutation as a permutation in oneline notation.
+    If unsuccessful, returns None.
+
+    n: positive integer of the form 3k+1
+    sphere1: permutation in cycle notation
+    times: positive integer
+    """
+    oneline1 = cycle_to_oneline(sphere1,n)
+    block_perms = list(block_permutations(int((n-1)/3)))
+    rots = list(rotations(int((n-1)/3)))
+    reflections = [oneline1,reflect(oneline1)]
+    for i in range(times):
+        r = random.choice([0,1])
+        reflected = reflections[r]
+        iso = compose(random.choice(block_perms),random.choice(rots))
+        oneline2 = relabel(reflected,iso)
+        s1_inv_s2_cycles = oneline_to_cycle(compose(inverse(oneline1),oneline2))
+        if has_correct_cycle_structure(s1_inv_s2_cycles) and is_contracted(oneline1,oneline2,n):
+            return ((sphere1,oneline_to_cycle(oneline2)),(r,iso))
+    return None
 
 
 ##################################################
