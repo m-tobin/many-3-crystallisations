@@ -217,7 +217,7 @@ def has_correct_cycle_structure(cycles):
 def component_graph(oneline):
     """
     Construct a graph from a potential gem of the specified form indicating how 2-coloured edges join the (0,1)-connected components.
-    Vertices are connected components of the graph specified by id and (0)(1 2 3)...(n-3 n-2 n-1), with an edge if an edge specified by
+    Nodes are connected components of the graph specified by id and (0)(1 2 3)...(n-3 n-2 n-1), with an edge if an edge specified by
         the given permutation joins them.
     Returns as a dictinary, with keys 0,1,...,(n-1)/3+1 representing connected components {0,0'}, {1,1',2,2',3,3'}, ...
 
@@ -241,7 +241,7 @@ def is_connected(graph):
     Check if a graph in dictionary format is connected.
     Returns as a Boolean.
 
-    graph: dictionary with keys representing vertices and values which are lists of all adjacent vertices
+    graph: dictionary with keys representing nodes and values which are lists of all adjacent nodes
     """
     found = [0]
     unchecked = graph[0].copy()
@@ -346,7 +346,7 @@ def block_permutations(num_blocks):
 
 def isomorphism_class(sphere,n,oneline=False,index=False):
     """
-    Find all spheres isomorphic to a given sphere by vertex-relabelling isomorphisms.
+    Find all spheres isomorphic to a given sphere by 0,1-isomorphisms.
     Returns as a list of the permutations which specify the spheres in cycle notation (lists of lists of integers).
 
     Index format (if index=True): tuple (i,j,k)
@@ -398,7 +398,7 @@ def three_colour_graphs(oneline1,oneline2,n):
     Construct two graphs describing connectivity after removing colour 1 or colour 0 from a potential 3-crystallisation.
     First graph is produced by removing 1-coloured edges and joining pairs (i,i').
     Second graph is produced by removing 0-coloured edges.
-    Returns as a pair (tuple) of dictionaries representing graphs, with keys representing vertices and values lists of vertices joined to it by an edge.
+    Returns as a pair (tuple) of dictionaries representing graphs, with keys representing nodes and values lists of nodes joined to it by an arc.
         First has keys 0,1,...,n-1.
         Second has keys 0,1,...,2n-1 reperesenting 0,1,...,n-1,0',1',...,(n-1)' respectively.
 
@@ -536,10 +536,10 @@ def colour_swap(gem,swap):
     The swap is specified by a permutation on {0,1,2,3} given in oneline notation.
     Returns as a pair (tuple) of permutations in cycle notation.
 
-    Procedure is to relabel the colours as specified, then relabel the vertices to such that the first 3 colours,
+    Procedure is to relabel the colours as specified, then relabel the nodes to such that the first 3 colours,
         or 2 if this is not possible, are the same permutations as for the original gem.
-    The vertex relabelling is achieved by:
-        First, relabeling only bottom-row vertices such that colour 0 becomes id.
+    The node relabelling is achieved by:
+        First, relabeling only top-row nodes such that colour 0 becomes id.
         Second, relabelling colour-0 pairs together such that the cycles of colour 1 (ordered lexicographically in cycle notation)
             become the corresponding cycles of mu.
         Third, finding the first 2-sphere isomorphism (as ordered by isomorphism_class()) mapping colour 2 to the given
